@@ -188,7 +188,7 @@ prepare_prefix() {
     ln -sfn "../drive_c" "${PREFIX_DIR}/dosdevices/c:"
     ln -sfn "/" "${PREFIX_DIR}/dosdevices/z:"
 
-    wine_run wineboot --update >/dev/null 2>&1 || true
+    wine_run wineboot >/dev/null 2>&1 || true
     wine_stop
 
     fix_username
