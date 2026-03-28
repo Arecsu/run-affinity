@@ -224,7 +224,7 @@ install_affinity() {
     wine_stop
     pkill -9 wineserver 2>/dev/null || true
     sleep 2
-    wine_run "$installer"
+    wine_run "$installer" 2>/dev/null
     pkill -9 wineserver 2>/dev/null || true
     sleep 1
 
