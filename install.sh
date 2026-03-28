@@ -68,6 +68,7 @@ BASE_ARCHIVE="${SCRIPT_DIR}/affinity-base.tar.zst"
 
 GITHUB_REPO="Arecsu/run-affinity"
 BASE_ARCHIVE_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/affinity-base.tar.zst"
+BASE_VERSION="$(wget -qO- "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" 2>/dev/null | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -126,6 +127,7 @@ restore_winmetadata() {
 extract_base() {
     if [ ! -f "$BASE_ARCHIVE" ]; then
         step "Downloading base archive..."
+        info "Version: ${BASE_VERSION:-latest}"
         BASE_ARCHIVE="/tmp/affinity-base.tar.zst"
         download "$BASE_ARCHIVE_URL" "$BASE_ARCHIVE" "affinity-base.tar.zst (~1.2 GB)"
     fi
@@ -389,6 +391,7 @@ run_dpi_config() {
 header "Affinity Linux Installer"
 echo ""
 echo -e "  Base archive : ${C}${BASE_ARCHIVE}${N}"
+echo -e "  Version      : ${C}${BASE_VERSION:-local}${N}"
 echo -e "  Install dir  : ${C}${INSTALL_DIR}${N}"
 echo -e "  Mode         : ${W}${MODE}${N}"
 
