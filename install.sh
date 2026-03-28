@@ -15,6 +15,7 @@
 #   ./install.sh [--installer /path/to/Affinity.exe]
 #   ./install.sh --reinstall
 #   ./install.sh --update
+#   ./install.sh --upgrade
 
 set -euo pipefail
 
@@ -75,6 +76,7 @@ while [[ $# -gt 0 ]]; do
         --installer) USER_INSTALLER="$2"; shift 2 ;;
         --reinstall) MODE="reinstall"; shift ;;
         --update)    MODE="update"; shift ;;
+        --upgrade)   MODE="upgrade"; shift ;;
         *) die "Unknown argument: $1" ;;
     esac
 done
@@ -123,6 +125,45 @@ restore_winmetadata() {
 }
 
 # ─── Extract base archive ─────────────────────────────────────────────────────
+
+# Like extract_base but skips registry files so the existing Wine prefix
+# (Affinity install state, user settings, licence) is preserved.
+# Used by --upgrade to update Wine + patched DLLs without losing user data.
+extract_base_keep_prefix() {
+    if [ ! -f "$BASE_ARCHIVE" ]; then
+        step "Downloading base archive..."
+        info "Version: ${BASE_VERSION:-latest}"
+        BASE_ARCHIVE="/tmp/affinity-base.tar.zst"
+        download "$BASE_ARCHIVE_URL" "$BASE_ARCHIVE" "affinity-base.tar.zst (~1.2 GB)"
+    fi
+
+    step "Extracting Wine + DLLs (preserving prefix)..."
+    info "Source: $BASE_ARCHIVE ($(du -sh "$BASE_ARCHIVE" | cut -f1))"
+
+    mkdir -p "$INSTALL_DIR"
+    # Extract wine/ fully, and wineprefix/ minus the registry files
+    tar -I zstd -xf "$BASE_ARCHIVE" -C "$INSTALL_DIR" \
+        --transform 's/^wineprefix/prefix/' \
+        --exclude='wineprefix/system.reg' \
+        --exclude='wineprefix/user.reg' \
+        --exclude='wineprefix/userdef.reg' \
+        2>/dev/null &
+    TAR_PID=$!
+    i=0; chars='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    while kill -0 $TAR_PID 2>/dev/null; do
+        printf "\r  ${C}${chars:i++%${#chars}:1}${N} Extracting..."
+        sleep 0.08
+    done
+    printf "\r  \r"
+    wait $TAR_PID
+
+    if [ -d "${INSTALL_DIR}/wineprefix" ] && [ ! -d "${INSTALL_DIR}/prefix" ]; then
+        mv "${INSTALL_DIR}/wineprefix" "${INSTALL_DIR}/prefix"
+    fi
+
+    ok "Wine:   $(du -sh "$WINE_DIR" | cut -f1)"
+    ok "Prefix: $(du -sh "$PREFIX_DIR" | cut -f1)"
+}
 
 extract_base() {
     if [ ! -f "$BASE_ARCHIVE" ]; then
@@ -463,6 +504,22 @@ case "$MODE" in
         ok "Update complete — desktop entry and Wine prefix unchanged"
         ;;
 
+    upgrade)
+        [ -d "$WINE_DIR" ]  || die "No existing installation found. Run without --upgrade first."
+        [ -d "$PREFIX_DIR" ] || die "No existing prefix found. Run without --upgrade first."
+        header "Upgrading Wine + patched DLLs"
+        info "User preferences and Affinity data will be preserved."
+        wine_stop
+        extract_base_keep_prefix
+        fix_username
+        header "Updating Affinity"
+        install_affinity
+        restore_winmetadata
+        header "Updating AffinityPluginLoader + WineFix"
+        apply_plugin_loader
+        ok "Upgrade complete — user preferences preserved"
+        ;;
+
 esac
 
 echo ""
@@ -471,5 +528,6 @@ echo ""
 echo -e "  Launch   : ${C}affinity${N}  (or from your app menu)"
 echo -e "  DPI      : ${C}affinity --dpi${N}"
 echo -e "  Wine cfg : ${C}affinity --winecfg${N}"
-echo -e "  Update   : ${C}./install.sh --update${N}"
+echo -e "  Update   : ${C}./install.sh --update${N}   (Affinity only, preserves everything)"
+echo -e "  Upgrade  : ${C}./install.sh --upgrade${N}  (Wine + DLLs + Affinity, preserves preferences)"
 echo ""

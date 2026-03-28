@@ -73,11 +73,23 @@ Or launch from your application menu.
 
 ### Updating Affinity
 
+Updates only the Affinity application. Wine, patched DLLs, and all preferences are left untouched.
+
 ```bash
 ./install.sh --update
 ```
 
+### Upgrading Wine + DLLs
+
+Updates Wine, patched DLLs, and Affinity while **preserving user preferences** (settings, workspaces, licence, etc.).
+
+```bash
+./install.sh --upgrade
+```
+
 ### Reinstalling
+
+Wipes everything and starts fresh. **All preferences and data will be lost.**
 
 ```bash
 ./install.sh --reinstall
