@@ -277,6 +277,17 @@ install_affinity() {
 
 # ─── AffinityPluginLoader + WineFix ───────────────────────────────────────────
 
+restore_plugin_loader() {
+    # Undo the Affinity.exe <-> AffinityHook.exe swap so the MSI installer
+    # sees the real Affinity.exe. Call this BEFORE running the installer.
+    if [ -f "${AFFINITY_APP_DIR}/Affinity.real.exe" ]; then
+        step "Restoring Affinity.exe before installer runs..."
+        mv "${AFFINITY_APP_DIR}/Affinity.exe"      "${AFFINITY_APP_DIR}/AffinityHook.exe"
+        mv "${AFFINITY_APP_DIR}/Affinity.real.exe" "${AFFINITY_APP_DIR}/Affinity.exe"
+        ok "Restored"
+    fi
+}
+
 apply_plugin_loader() {
     step "Applying AffinityPluginLoader + WineFix..."
 
@@ -286,12 +297,12 @@ apply_plugin_loader() {
     tar -xf "$bundle" -C "${AFFINITY_APP_DIR}"
     rm -f "$bundle"
 
-    if [ -f "${AFFINITY_APP_DIR}/AffinityHook.exe" ] && [ ! -f "${AFFINITY_APP_DIR}/Affinity.real.exe" ]; then
+    if [ -f "${AFFINITY_APP_DIR}/AffinityHook.exe" ]; then
+        # Always redo the swap — Affinity.exe may have been replaced by an update
+        [ -f "${AFFINITY_APP_DIR}/Affinity.real.exe" ] && rm -f "${AFFINITY_APP_DIR}/Affinity.real.exe"
         mv "${AFFINITY_APP_DIR}/Affinity.exe"     "${AFFINITY_APP_DIR}/Affinity.real.exe"
         mv "${AFFINITY_APP_DIR}/AffinityHook.exe" "${AFFINITY_APP_DIR}/Affinity.exe"
-        ok "Launcher swapped — settings will save correctly on Linux"
-    elif [ -f "${AFFINITY_APP_DIR}/Affinity.real.exe" ]; then
-        ok "AffinityPluginLoader already applied"
+        ok "AffinityPluginLoader applied"
     else
         warn "AffinityHook.exe not found — check the extracted bundle"
     fi
@@ -496,6 +507,7 @@ case "$MODE" in
         [ -d "$PREFIX_DIR" ] || die "No existing prefix found. Run without --update first."
         header "Updating Affinity"
         wine_stop
+        restore_plugin_loader
         install_affinity
         restore_winmetadata
         header "Updating AffinityPluginLoader + WineFix"
@@ -509,6 +521,7 @@ case "$MODE" in
         header "Upgrading Wine + patched DLLs"
         info "User preferences and Affinity data will be preserved."
         wine_stop
+        restore_plugin_loader
         extract_base_keep_prefix
         fix_username
         header "Updating Affinity"
