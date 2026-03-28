@@ -45,6 +45,7 @@ Built from [wine-affinity](https://github.com/Arecsu/wine-affinity) patches:
 - **d2d1.dll** — Patched Direct2D with Affinity-specific fixes (stub `Widen` with empty geometry, bezier recursion guard)
 - **dxcore.dll** — Full GPU adapter enumeration (upstream Wine's is a stub), with correct PCI ID reporting through DXVK
 - **opencl.dll** — Patched OpenCL with `cl_khr_d3d10_sharing` extension support, enabling GPU-accelerated OpenCL in Affinity
+- **comdlg32.dll** — Patched file dialog with XDG Desktop Portal support for native file pickers
 
 ### Pre-installed Libraries (via winetricks)
 - .NET Framework 4.8
@@ -54,6 +55,7 @@ Built from [wine-affinity](https://github.com/Arecsu/wine-affinity) patches:
 
 ### Features
 - GPU OpenCL acceleration works (NVIDIA tested, no idea about AMD/Intel)
+- Native file dialogs via XDG Desktop Portal (requires `xdg-desktop-portal` + a backend) — configure in `affinity --winecfg` → Desktop Integration
 - DPI scaling configuration via `affinity --dpi` (requires zenity)
 - Desktop / Application entry
 - AffinityPluginLoader + WineFix applied automatically (settings save correctly on Linux)
@@ -100,7 +102,8 @@ Or launch from your application menu.
 
 ## Credits
 
-- [wine-affinity](https://github.com/Arecsu/wine-affinity) — Wine patches for Affinity (d2d1, dxcore, opencl)
+- [wine-affinity](https://github.com/Arecsu/wine-affinity) — Wine patches for Affinity (d2d1, dxcore, opencl, comdlg32)
+- [Alexander Wilms](https://gitlab.winehq.org/wine/wine/-/merge_requests/10060) — XDG Desktop Portal file dialog integration (Wine MR !10060)
 - [Kron4ek/Wine-Builds](https://github.com/Kron4ek/Wine-Builds) — portable Wine builds
 - [ElementalWarrior (James McDonnell)](https://gitlab.winehq.org/ElementalWarrior/wine) — original Affinity Wine patches
 - [doitsujin/dxvk](https://github.com/doitsujin/dxvk) — DXVK
