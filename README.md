@@ -4,6 +4,8 @@ Run Affinity natively on any Linux distribution (although only tested on Cachy O
 
 Provides a fully self-contained, portable Wine environment with all dependencies pre-configured. Just run the installer and you should be ready to go in no time.
 
+![Affinity running on Linux](assets/run-affinity.webp)
+
 ## Requirements
 
 - A 64-bit Linux distribution
