@@ -266,8 +266,7 @@ install_affinity() {
     pkill -9 wineserver 2>/dev/null || true
     sleep 2
     wine_run "$installer" 2>/dev/null
-    pkill -9 wineserver 2>/dev/null || true
-    sleep 1
+    wine_stop
 
     [ -z "$USER_INSTALLER" ] && rm -f "$installer"
 
@@ -450,7 +449,7 @@ case "$MODE" in
 
     install)
         if [ -d "${WINE_DIR}" ] || [ -d "${PREFIX_DIR}" ]; then
-            die "Existing installation found at ${INSTALL_DIR}\nUse --reinstall to wipe and reinstall, or --update to only update Affinity."
+            die "Existing installation found at ${INSTALL_DIR}\nUse --reinstall to wipe and reinstall, --update to only update Affinity, or --upgrade to update Wine + DLLs + Affinity while preserving preferences."
         fi
         header "Extracting base (Wine + prefix)"
         extract_base
