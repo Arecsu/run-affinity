@@ -520,7 +520,9 @@ case "$MODE" in
         restore_winmetadata
         header "Updating AffinityPluginLoader + WineFix"
         apply_plugin_loader
-        ok "Update complete — desktop entry and Wine prefix unchanged"
+        header "Desktop integration"
+        create_desktop_entry
+        ok "Update complete — Wine prefix unchanged"
         ;;
 
     upgrade)
@@ -537,6 +539,8 @@ case "$MODE" in
         restore_winmetadata
         header "Updating AffinityPluginLoader + WineFix"
         apply_plugin_loader
+        header "Desktop integration"
+        create_desktop_entry
         ok "Upgrade complete — user preferences preserved"
         ;;
 
