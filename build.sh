@@ -125,6 +125,8 @@ tar -I zstd -cf "${OUTPUT}" \
     --exclude='prefix/drive_c/users/*/AppData/Roaming/Affinity' \
     --exclude='prefix/drive_c/users/*/AppData/Local/Affinity' \
     --exclude='prefix/drive_c/users/*/AppData/Local/Temp' \
+    --exclude='*.bak' \
+    --exclude='*.orig' \
     wine/ prefix/
 
 echo "Done: $(du -sh "${OUTPUT}" | cut -f1)"

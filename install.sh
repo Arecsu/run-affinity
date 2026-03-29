@@ -297,6 +297,11 @@ apply_plugin_loader() {
     tar -xf "$bundle" -C "${AFFINITY_APP_DIR}"
     rm -f "$bundle"
 
+    # Remove WineFix's d2d1.dll — we ship our own patched version in the
+    # Wine builtin lib dir, which has additional fixes (bezier subdivision,
+    # collinear join fix) on top of what WineFix provides.
+    rm -f "${AFFINITY_APP_DIR}/d2d1.dll"
+
     if [ -f "${AFFINITY_APP_DIR}/AffinityHook.exe" ]; then
         # Always redo the swap — Affinity.exe may have been replaced by an update
         [ -f "${AFFINITY_APP_DIR}/Affinity.real.exe" ] && rm -f "${AFFINITY_APP_DIR}/Affinity.real.exe"
@@ -424,6 +429,9 @@ EOF
 
     rm -f "${APPS_DIR}/wine/Programs/Affinity.desktop" \
           "${APPS_DIR}/wine-protocol-affinity.desktop"
+
+    # Disable winemenubuilder to prevent Wine from recreating desktop entries
+    wine_run reg add 'HKCU\Software\Wine\DllOverrides' /v winemenubuilder.exe /d '' /f >/dev/null 2>&1 || true
 
     update-desktop-database "$APPS_DIR" 2>/dev/null || true
     ok "Desktop entry created"

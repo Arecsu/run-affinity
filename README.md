@@ -14,6 +14,16 @@ Provides a fully self-contained, portable Wine environment with all dependencies
 - `7z` or `unzip` (for WinMetadata restoration)
 - `zenity` (optional, for DPI configuration dialog. If you have a high DPI screen, you DO need to configure this)
 
+## Important: XWayland required
+
+Affinity **must run under XWayland**, not native Wayland. This is because it relies on DXVK for Direct3D translation, and DXVK does not work correctly under Wine's Wayland driver — expect rendering glitches, blank windows, and broken GPU OpenCL acceleration.
+
+Wine's default behavior is to prefer the X11 driver when both X11 and Wayland are available, so **this should work out of the box on most setups**. However, if you have forced Wine to use Wayland (e.g. by unsetting `DISPLAY`), Affinity will not work properly.
+
+> **From Wine's release notes:** *"The Wayland graphics driver is enabled by default, but the X11 driver still takes precedence if both are available. To force using the Wayland driver in that case, make sure that the DISPLAY environment variable is unset."*
+>
+> For Affinity, you want the opposite — make sure `DISPLAY` **is** set so Wine uses XWayland.
+
 ## Quick Install
 
 ```bash
@@ -44,7 +54,7 @@ The script will download the preconfigured wine prefix (~1.2 GB) from GitHub Rel
 
 ### Custom Patched DLLs
 Built from [wine-affinity](https://github.com/Arecsu/wine-affinity) patches:
-- **d2d1.dll** — Patched Direct2D with Affinity-specific fixes (stub `Widen` with empty geometry, bezier recursion guard)
+- **d2d1.dll** — Patched Direct2D with Affinity-specific fixes (stub `Widen`, bezier recursion guard, cubic-to-quadratic subdivision for accurate path rendering, collinear outline join fix)
 - **dxcore.dll** — Full GPU adapter enumeration (upstream Wine's is a stub), with correct PCI ID reporting through DXVK
 - **opencl.dll** — Patched OpenCL with `cl_khr_d3d10_sharing` extension support, enabling GPU-accelerated OpenCL in Affinity
 - **comdlg32.dll** — Patched file dialog with XDG Desktop Portal support for native file pickers
